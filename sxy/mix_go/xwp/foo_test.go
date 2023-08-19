@@ -8,10 +8,6 @@ package xwp
 
 import "testing"
 
-func Test_try(t *testing.T) {
-	try()
-}
-
-func Test_tryPanic(t *testing.T) {
-	tryPanic()
+func Test_fuck(t *testing.T) {
+	fuck()
 }
