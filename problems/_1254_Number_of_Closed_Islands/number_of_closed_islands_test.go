@@ -27,8 +27,14 @@ func Test_closedIsland(t *testing.T) {
 		{0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0},
 		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	}
-	//grid := [][]int{{1,1},
+	// grid := [][]int{{1,1},
 	//	{1,0},
 	//	{0,1}}
 	t.Log(closedIsland(grid))
+}
+
+func Test_2(t *testing.T) {
+	var m = make(map[int]int)
+	m[1]++
+	println(m[1])
 }
