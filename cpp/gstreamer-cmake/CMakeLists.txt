@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.16)
 project(gstreamer_cmake )
 
 set(CMAKE_CXX_STANDARD 14)
@@ -21,14 +21,27 @@ link_directories( ${GST_LIBRARY_DIRS} ${GSTAPP_LIBRARY_DIRS})
 
 set(RESTWEB_LIBRARIES "-lboost_system -lcrypto -lssl -lcpprest")
 
+# <------------ add hiredis dependency --------------->
+find_path(HIREDIS_HEADER hiredis PATHS /usr/local/include/hiredis)
+message(STATUS ${HIREDIS_HEADER})
+
+find_library(HIREDIS_LIB hiredis)
+# <------------ add redis-plus-plus dependency -------------->
+find_path(REDIS_PLUS_PLUS_HEADER sw)
+find_library(REDIS_PLUS_PLUS_LIB redis++)
+
 # first executable, it must be defined before target link it!
 add_executable(${PROJECT_NAME}  ./main.cpp ${DIR_SRCS})
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}")
-target_link_libraries(${PROJECT_NAME} ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} -lpthread -lm)
-
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER})
+target_link_libraries(${PROJECT_NAME} ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB} -lpthread -lm)
 
 # second executable
 add_executable(entrypoint1 ./entrypoints/entrypoint1.cpp ${DIR_SRCS})
-target_include_directories(entrypoint1 PUBLIC "${PROJECT_BINARY_DIR}")
-target_link_libraries(entrypoint1 ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} -lpthread -lm)
+target_include_directories(entrypoint1 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER})
+target_link_libraries(entrypoint1 ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} -lpthread -lm ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB})
+
+# third executable
+add_executable(entrypoint2 ./entrypoints/entrypoint2.cpp ${DIR_SRCS})
+target_include_directories(entrypoint2 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER})
+target_link_libraries(entrypoint2 ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB} -lpthread -lm)
 
