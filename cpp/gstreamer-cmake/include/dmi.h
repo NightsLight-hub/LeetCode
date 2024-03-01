@@ -271,7 +271,7 @@ private:
 
   // 用这个变量通知decision线程退出
   bool stopDecisionMaker = false;
-  atomic_bool decisionMakerStart{};
+  atomic_bool decisionMakerStart;
   thread *decisionThread{};
 
   /**
@@ -546,10 +546,8 @@ public:
    * line 391
    */
   explicit DominantSpeakerIdentification(long silenceTimeout)
-      : enableSilence(silenceTimeout > 0),
-        timeoutToSilenceInterval(silenceTimeout) {
-    decisionMakerStart.store(false);
-  }
+      : decisionMakerStart(false), enableSilence(silenceTimeout > 0),
+        timeoutToSilenceInterval(silenceTimeout){};
 
   /**
    * Set energy ranking options

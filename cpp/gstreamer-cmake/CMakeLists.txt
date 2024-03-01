@@ -16,7 +16,7 @@ pkg_check_modules(GSTAPP REQUIRED gstreamer-app-1.0)
 # add all files in directory "package" to variable "DIR_SRCS"
 aux_source_directory(package DIR_SRCS)
 message(STATUS ${DIR_SRCS})
-include_directories(${GST_INCLUDE_DIRS} ${GSTAPP_INCLUDE_DIRS} "./include")
+include_directories(${GST_INCLUDE_DIRS} ${GSTAPP_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 link_directories( ${GST_LIBRARY_DIRS} ${GSTAPP_LIBRARY_DIRS})
 
 set(RESTWEB_LIBRARIES "-lboost_system -lcrypto -lssl -lcpprest")
@@ -37,11 +37,11 @@ target_link_libraries(${PROJECT_NAME} ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RES
 
 # second executable
 add_executable(entrypoint1 ./entrypoints/entrypoint1.cpp ${DIR_SRCS})
-target_include_directories(entrypoint1 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER})
+target_include_directories(entrypoint1 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER} )
 target_link_libraries(entrypoint1 ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} -lpthread -lm ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB})
 
 # third executable
 add_executable(entrypoint2 ./entrypoints/entrypoint2.cpp ${DIR_SRCS})
-target_include_directories(entrypoint2 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER})
+target_include_directories(entrypoint2 PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER} )
 target_link_libraries(entrypoint2 ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB} -lpthread -lm)
 
