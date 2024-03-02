@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(gstreamer_cmake )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 #set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_BUILD_TYPE "Debug")
@@ -12,10 +12,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 include(FindPkgConfig)
 pkg_check_modules(GST REQUIRED gstreamer-1.0)
 pkg_check_modules(GSTAPP REQUIRED gstreamer-app-1.0)
-
 # add all files in directory "package" to variable "DIR_SRCS"
-aux_source_directory(package DIR_SRCS)
-message(STATUS ${DIR_SRCS})
+file(GLOB_RECURSE  DIR_SRCS ${CMAKE_SOURCE_DIR}/package/*.cpp)
+message(STATUS "src file list: ")
+foreach (srcFile IN LISTS DIR_SRCS)
+    message(STATUS ${srcFile} ",")
+endforeach ()
+message(STATUS "")
+
 include_directories(${GST_INCLUDE_DIRS} ${GSTAPP_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 link_directories( ${GST_LIBRARY_DIRS} ${GSTAPP_LIBRARY_DIRS})
 
@@ -23,8 +27,6 @@ set(RESTWEB_LIBRARIES "-lboost_system -lcrypto -lssl -lcpprest")
 
 # <------------ add hiredis dependency --------------->
 find_path(HIREDIS_HEADER hiredis PATHS /usr/local/include/hiredis)
-message(STATUS ${HIREDIS_HEADER})
-
 find_library(HIREDIS_LIB hiredis)
 # <------------ add redis-plus-plus dependency -------------->
 find_path(REDIS_PLUS_PLUS_HEADER sw)

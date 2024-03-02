@@ -5,31 +5,28 @@
 #ifndef CLION_DEMO_TOOL_H
 #define CLION_DEMO_TOOL_H
 #include "random"
-
 #include "iostream"
 #include <condition_variable>
+#include "plog/log.h"
+#include <plog/Initializers/RollingFileInitializer.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Appenders/ColorConsoleAppender.h>
+
 using namespace std;
 
-int randomInt(int min, int max) {
-  std::random_device
-      rd; // 如果可用的话，从一个随机数发生器上获得一个真正的随机数
-  std::mt19937 gen(
-      rd()); // gen是一个使用rd()作种子初始化的标准梅森旋转算法的随机数发生器
-  std::uniform_int_distribution<> distrib(min, max);
+#define MODE (S_IRWXU | S_IRWXG | S_IRWXO)
+extern plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+void initLog(const string& logFilePath, const string& level);
 
-  return distrib(gen);
-}
+bool makeDir(string folderPath);
+
+int randomInt(int min, int max);
 
 /**
  * get current timestamp milliseconds
  * @return
  */
-long now() {
-  std::chrono::time_point<std::chrono::system_clock> lastLevelChangedTime =
-      chrono::system_clock::now();
-  auto ms = chrono::time_point_cast<chrono::milliseconds>(lastLevelChangedTime);
-  return ms.time_since_epoch().count();
-}
+long now();
 
 class CountDownLatch {
 private:
