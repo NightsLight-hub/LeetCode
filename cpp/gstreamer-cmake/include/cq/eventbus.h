@@ -1,6 +1,6 @@
 
 //
-// Created by sunxy on 2024/2/29.
+// Created by sunxy on 2024/2/29.  cq  不保证交付顺序，音视频场景下不适用
 //
 
 #ifndef CLION_DEMO_EVENTBUS_H
