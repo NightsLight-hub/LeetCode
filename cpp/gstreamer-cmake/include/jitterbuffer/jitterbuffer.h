@@ -170,7 +170,11 @@ public:
     if (queue.empty() && !queue2.empty()) {
       return queue2.top();
     }
-    return queue.top();
+    if (queue.top()->priority < threshold) {
+      return queue2.top();
+    } else {
+      return queue.top();
+    }
   }
 
 private:
@@ -181,6 +185,4 @@ private:
                       cmp<T>>
       queue2;
   int threshold = 30000;
-
-  // 将queue2的东西移动到 queue中
 };
