@@ -9,10 +9,13 @@
 extern "C" {
 #endif
 
-extern void *getInstance();
-extern void producer(BlockingQueue<int> *q);
-extern int pop(BlockingQueue<int> *q);
+
+extern void *getQueueInstance();
+extern unsigned int queueSize(void *q);
+extern void producer(void* q);
+extern int pop(void* q);
 extern void hello();
+extern void outputCharArray(void* str, int length);
 
 #ifdef __cplusplus
 }

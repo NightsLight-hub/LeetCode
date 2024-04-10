@@ -22,6 +22,12 @@ public:
     return queue.empty();
   }
 
+  uint size() const
+  {
+    std::lock_guard<std::mutex> lock(guard);
+    return queue.size();
+  }
+
   bool tryPop(T& _value)
   {
     std::lock_guard<std::mutex> lock(guard);

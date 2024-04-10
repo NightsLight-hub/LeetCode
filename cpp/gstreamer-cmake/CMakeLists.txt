@@ -63,5 +63,7 @@ target_link_libraries(test_my_class ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTW
 
 #ADD_SUBDIRECTORY(lib)
 ADD_LIBRARY(demolib SHARED demolib.cpp ${DIR_SRCS})
+target_include_directories(demolib PUBLIC "${PROJECT_BINARY_DIR}" "${HIREDIS_HEADER}" ${REDIS_PLUS_PLUS_HEADER} )
+target_link_libraries(demolib ${GST_LIBRARIES} ${GSTAPP_LIBRARIES} ${RESTWEB_LIBRARIES} ${HIREDIS_LIB} ${REDIS_PLUS_PLUS_LIB} ${GTEST_BOTH_LIBRARIES} -lpthread -lm)
 
 gtest_discover_tests(test_my_class)
