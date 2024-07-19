@@ -1,103 +1,86 @@
-#include "bq/blockingqueue.h"
-#include "chrono"
-#include "filesystem"
-#include "jitterbuffer/jitterbuffer.h"
-#include "model.h"
-#include "thread/trythread.h"
-#include "tool.h"
-#include <iostream>
+#include "iostream"
+#include "thread"
+#include <gst/gst.h>
+#include <malloc.h>
+#include <string.h>
 
 using namespace std;
-void tryBlockingQueue();
 
-void tryJitterBuffer() {
-  mutex lock;
-  JitterBuffer<DataBlock> jitterBuffer;
-  std::thread producer([&]() {
-    std::srand(std::time(nullptr));
-    unsigned short int i = 65000;
-    while (true) {
-      this_thread::sleep_for(chrono::milliseconds(3));
-      std::unique_lock<std::mutex> locker(lock);
-      if (rand() % 2 == 0) {
-        DataBlock dataBlock(5, "hello", i + 1);
-        shared_ptr<RtpData<DataBlock>> sptr =
-            make_shared<RtpData<DataBlock>>(RtpData(dataBlock, i + 1));
-        jitterBuffer.push(sptr);
-        DataBlock dataBlock2(5, "hello", i);
-        sptr = make_shared<RtpData<DataBlock>>(RtpData(dataBlock2, i));
-        jitterBuffer.push(sptr);
-        i += 2;
-      } else {
-        DataBlock dataBlock(5, "hello", i);
-        auto sptr = make_shared<RtpData<DataBlock>>(RtpData(dataBlock, i));
-        i++;
-        jitterBuffer.push(sptr);
-      }
-    }
-  });
-  std::thread consumer([&]() {
-    this_thread::sleep_for(chrono::milliseconds(1000));
-    printf("length %d \n", jitterBuffer.length());
-    int lastSentSeq = 0;
-    while (true) {
-      std::unique_lock<std::mutex> locker(lock);
-      if (jitterBuffer.length() < 20) {
-        continue;
-      }
-      shared_ptr<RtpData<DataBlock>> d = jitterBuffer.pop();
-      if (d != nullptr) {
-        if (lastSentSeq != 0 && d->content.seq != lastSentSeq + 1) {
-          printf("wrong order packet, expect %d, but got %d \n",
-                 lastSentSeq + 1, d->content.seq);
-        }
-        lastSentSeq = d->content.seq;
-      } else {
-        continue;
-      }
-    }
-  });
-  producer.detach();
-  consumer.join();
-};
+const int sleepInterval = 3;
 
-void tryCopy() {
-  cout << "make DataBlock" << endl;
-  DataBlock d(5, "hello", 1);
-  cout << "make RtpData" << endl;
-  RtpData<DataBlock> rtp = RtpData(d, 1);
-  cout << rtp.content.data << endl;
+GMainLoop *main_loop;
+GstElement *pipeline;
+
+string compPipeline =
+    "videotestsrc pattern=1 !"
+    " video/x-raw,format=AYUV,framerate= (fraction "
+    ")10/1,width=100,height=100 !  "
+    "videobox border-alpha=0 top=-70 bottom=-70 right=-220 !  "
+    "compositor name=comp sink_0::alpha=0.7 sink_1::alpha=0.5 !  "
+    "videoconvert ! autovideosink  "
+    "videotestsrc ! video/x-raw,format=AYUV,framerate= (fraction "
+    ")5/1,width=320,height=240 ! comp.";
+
+string testPipeline = "videotestsrc pattern=1 !"
+                      " video/x-raw,format=AYUV,framerate= (fraction "
+                      ")10/1,width=100,height=100 !  "
+                      "videoconvert ! autovideosink  ";
+
+/* This function is called when an error message is posted on the bus */
+static void error_cb(GstBus *bus, GstMessage *msg, GstElement *data) {
+  GError *err;
+  gchar *debug_info;
+
+  /* Print error details on the screen */
+  gst_message_parse_error(msg, &err, &debug_info);
+  g_printerr("Error received from element %s: %s\n", GST_OBJECT_NAME(msg->src),
+             err->message);
+  g_printerr("Debugging information: %s\n", debug_info ? debug_info : "none");
+  g_clear_error(&err);
+  g_free(debug_info);
+
+  g_main_loop_quit(main_loop);
 }
 
-int main() {
-  std::setbuf(stdin, 0);
-  tryJitterBuffer();
+void entrypoint(int argc, char *argv[]) {
+  cout << "run pipeline" << endl;
+  pipeline = gst_parse_launch(compPipeline.c_str(), NULL);
+  //  pipeline = gst_parse_launch(testPipeline.c_str(), NULL);
+
+  //  GstBus *bus = gst_element_get_bus(pipeline);
+  //  gst_bus_add_signal_watch(bus);
+  //  g_signal_connect(G_OBJECT(bus), "message::error", (GCallback)error_cb,
+  //                   pipeline);
+  //  gst_object_unref(bus);
+
+  /* Start playing the pipeline */
+  gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
+  /* Create a GLib Main Loop and set it to run */
+  main_loop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(main_loop);
 }
 
-void tryBlockingQueue() {
-  BlockingQueue<shared_ptr<DataBlock>> queue;
-  std::thread producer([&]() {
-    int i = 0;
-    ostringstream oss;
-    while (true) {
-      this_thread::sleep_for(chrono::milliseconds(1));
-      oss.clear();
-      oss.str("");
-      oss << "hello " << i++;
-      string d = oss.str();
-      shared_ptr<DataBlock> dataBlock(
-          new DataBlock((int)d.length(), oss.str().data(), 1));
-      queue.push(dataBlock);
-    }
-  });
-  std::thread consumer([&]() {
-    this_thread::sleep_for(chrono::milliseconds(1000));
-    while (true) {
-      shared_ptr<DataBlock> d;
-      if (queue.tryWaitAndPop(d, 1)) {
-        printf("%s \n", d->data);
-      }
-    }
-  });
-  producer.join();
+int main(int argc, char *argv[]) {
+  gst_init(&argc, &argv);
+  cout << "start" << endl;
+  int i = 0;
+  while (true) {
+    this_thread::sleep_for(chrono::seconds(sleepInterval));
+    cout << "start " << ++i << "  test" << endl;
+    thread([&] { entrypoint(argc, argv); }).detach();
+
+    this_thread::sleep_for(chrono::seconds(sleepInterval*3));
+    cout << "exit pipeline" << endl;
+
+    /* Free resources */
+    g_main_loop_quit(main_loop);
+    g_main_loop_unref(main_loop);
+    main_loop = nullptr;
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref(pipeline);
+    malloc_trim(0);
+  }
+
+  return 0;
 }

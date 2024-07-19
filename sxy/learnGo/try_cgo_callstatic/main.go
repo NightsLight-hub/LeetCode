@@ -7,8 +7,6 @@ Package try_cgo_callstatic
 */
 package main
 
-import "C"
-
 // #cgo CXXFLAGS: -std=c++17
 // #cgo CPPFLAGS: -I/mnt/e/CODE/LeetCode/cpp/gstreamer-cmake/include
 // #cgo LDFLAGS: -L/mnt/e/CODE/LeetCode/cpp/gstreamer-cmake/build -ldemolib
@@ -19,6 +17,7 @@ import "C"
 import "C"
 import (
 	"fmt"
+	"reflect"
 	"time"
 	"unsafe"
 )
@@ -37,10 +36,25 @@ func main() {
 	for i := 0; i < 20; i++ {
 		ss += ss
 	}
-	for i := 0; i < 100000; i++ {
-		var str = C.CBytes([]byte(ss))
-		C.outputCharArray(str, C.int(len([]byte(ss))))
-		C.free(unsafe.Pointer(str))
-		time.Sleep(time.Millisecond * 10)
+	// for i := 0; i < 100000; i++ {
+	// 	var str = C.CBytes([]byte(ss))
+	// 	C.outputCharArray(str, C.int(len([]byte(ss))))
+	// 	C.free(unsafe.Pointer(str))
+	// 	time.Sleep(time.Millisecond * 10)
+	// }
+
+	cMsg := C.mkMsg()
+	var msg string = C.GoString(cMsg)
+	fmt.Printf("Type is %v\n", reflect.TypeOf(msg))
+	fmt.Printf("%s\n", msg)
+
+	for i := 0; i < 2000000; i++ {
+		cMsg := C.mkMsg()
+		C.GoString(cMsg)
+		// C.free(unsafe.Pointer(cMsg))
+		C.freeMsg(cMsg)
+		if i%100 == 0 {
+			time.Sleep(time.Second * 1)
+		}
 	}
 }

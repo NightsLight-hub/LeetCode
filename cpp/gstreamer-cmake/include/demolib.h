@@ -16,6 +16,8 @@ extern void producer(void* q);
 extern int pop(void* q);
 extern void hello();
 extern void outputCharArray(void* str, int length);
+extern char* mkMsg();
+extern void freeMsg(char* msg);
 
 #ifdef __cplusplus
 }

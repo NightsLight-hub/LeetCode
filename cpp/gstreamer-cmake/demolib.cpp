@@ -4,18 +4,19 @@
 
 #include "bq/blockingqueue.h"
 #include <cstring>
+using namespace std;
 
 extern "C" {
 #include "demolib.h"
 }
 
-BlockingQueue<int> *queue = nullptr;
+BlockingQueue<int> *bqInst = nullptr;
 
 void *getQueueInstance() {
-  if (queue == nullptr) {
-    queue = new BlockingQueue<int>();
+  if (bqInst == nullptr) {
+    bqInst = new BlockingQueue<int>();
   }
-  return queue;
+  return bqInst;
 }
 
 unsigned int queueSize(void *q) {
@@ -46,4 +47,14 @@ void outputCharArray(void *str, int length) {
   memcpy(p, str, length);
   p[length] = 0;
 //  printf("%s\n", p);
+}
+
+char* mkMsg() {
+  char* msg = new char[1000000];
+  memset(msg, 'a', 1000000);
+  return msg;
+}
+
+void freeMsg(char* msg) {
+  free(msg);
 }
